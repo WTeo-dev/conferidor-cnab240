@@ -259,6 +259,6 @@ st.markdown("""
 <hr style="border:1px solid #ccc" />
 
 <div style='text-align: center; font-size: 14px; color: gray;'>
-    Desenvolvido por <strong> W.Teo </strong> · @ <a href='mailto:wesley.john@gmail.com'>wesley.john@gmail.com</a>
+    Desenvolvido por <strong> W.Teo </strong> · @ <a href='mailto:wteosouza@gmail.com'>wteosouza@gmail.com</a>
 </div>
 """, unsafe_allow_html=True)
