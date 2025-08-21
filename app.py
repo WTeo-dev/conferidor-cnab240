@@ -164,7 +164,6 @@ def extrair_trailer_arquivo(linha):
         "Uso Exclusivo FEBRABAN": linha[35:240].strip()
     }
 
-
 # === Interface ===
 st.set_page_config(page_title="Conferidor CNAB240", layout="wide")
 
@@ -195,7 +194,7 @@ with st.expander("📌 Lembretes para conferência"):
     - `2` → Protestar dias úteis  
     - `3` → Não protestar  
     """)
-
+    
 # Upload do arquivo .REM ou .TXT
 uploaded_file = st.file_uploader("📤 Envie o arquivo CNAB240 (.REM ou .TXT)", type=["txt", "rem"])
 
@@ -204,7 +203,13 @@ if uploaded_file:
 
     # Inicializa listas
     header_arquivo = []
+    header_lote = []
     segmentos_p = []
+    segmentos_q = []
+    segmentos_r = []
+    segmentos_s = []
+    trailer_lote = []
+    trailer_arquivo = []
 
     # Processa cada linha
     for linha in linhas:
@@ -216,49 +221,129 @@ if uploaded_file:
 
         if tipo == '0':
             header_arquivo.append(extrair_header_arquivo(linha))
-        elif tipo == '3' and segmento == 'P':
-            segmentos_p.append(extrair_segmento_p(linha))
+
+        elif tipo == '1':
+            header_lote.append(extrair_header_lote(linha))
+
+        elif tipo == '3':
+            if segmento == 'P':
+                segmentos_p.append(extrair_segmento_p(linha))
+            elif segmento == 'Q':
+                segmentos_q.append(extrair_segmento_q(linha))
+            elif segmento == 'R':
+                segmentos_r.append(extrair_segmento_r(linha))
+            elif segmento == 'S':
+                segmentos_s.append(extrair_segmento_s(linha))
+
+        elif tipo == '5':
+            trailer_lote.append(extrair_trailer_lote(linha))
+
+        elif tipo == '9':
+            trailer_arquivo.append(extrair_trailer_arquivo(linha))
 
     # Cria DataFrames
     df_header = pd.DataFrame(header_arquivo)
+    df_header_lote = pd.DataFrame(header_lote)
     df_segmento_p = pd.DataFrame(segmentos_p)
+    df_segmento_q = pd.DataFrame(segmentos_q)
+    df_segmento_r = pd.DataFrame(segmentos_r)
+    df_segmento_s = pd.DataFrame(segmentos_s)
+    df_trailer_lote = pd.DataFrame(trailer_lote)
+    df_trailer_arquivo = pd.DataFrame(trailer_arquivo)
 
+    # === Destaques ===.
+    
+    # Dicionários de explicação
+    movimentos = {
+    "01": "Entrada de título",
+    "02": "Baixa",
+    "04": "Abatimento",
+    "06": "Alterar Vencimento",
+    "09": "Protestar",
+    "10": "Sustação de protesto",
+    "45": "Negativação"}
+    
+    carteiras = {
+    "7": "Simples",
+    "2": "Vinculada",
+    "4": "Descontada",
+    "8": "Prêmio de Seguro"}
+    
+    juros = {
+    "1": "Valor por dia",
+    "2": "Taxa mensal",
+    "3": "Isento"}
+    
+    protesto = {
+    "1": "Protestar dias corridos",
+    "2": "Protestar dias úteis",
+    "3": "Não protestar"}
+    
+    # Cria colunas explicativas no df_segmento_p
+    df_segmento_p["Tipo de Movimento Explicado"] = df_segmento_p["Tipo de Movimento"].apply(
+    lambda x: f"{x} ({movimentos.get(str(x).zfill(2), 'Desconhecido')})")
+    
+    df_segmento_p["Código da Carteira Explicado"] = df_segmento_p["Código da Carteira"].apply(
+    lambda x: f"{x} ({carteiras.get(str(x), 'Desconhecido')})")
+    
+    df_segmento_p["Código do Juros Explicado"] = df_segmento_p["Código do Juros"].apply(
+    lambda x: f"{x} ({juros.get(str(x), 'Desconhecido')})")
+    
+    df_segmento_p["Código para Protesto Explicado"] = df_segmento_p["Código para Protesto"].apply(
+    lambda x: f"{x} ({protesto.get(str(x), 'Desconhecido')})")
+    
     # === Destaques ===
     st.subheader("🔍 Header do Arquivo")
     campos_header = [
-        "Número do Convênio", "Carteira", "Variação da Carteira",
-        "Agência", "DV Agência", "Conta", "DV Conta"
+    "Número do Convênio", "Carteira", "Variação da Carteira",
+    "Agência", "DV Agência", "Conta", "DV Conta"
     ]
+    
     st.dataframe(df_header[campos_header])
-
+    
     st.subheader("📌 Segmento P - Títulos")
     campos_segmento_p = [
-        "Nosso Numero", "Tipo de Movimento", "Código da Carteira", "Data de Vencimento",
-        "Valor Nominal", "Código do Juros", "Data do Juros",
-        "Valor do Juros", "Código para Protesto", "Dias para Protesto"
-    ]
+    "Nosso Numero", "Tipo de Movimento Explicado", "Código da Carteira Explicado",
+    "Data de Vencimento", "Valor Nominal", "Código do Juros Explicado",
+    "Data do Juros", "Valor do Juros", "Código para Protesto Explicado", "Dias para Protesto"]
     st.dataframe(df_segmento_p[campos_segmento_p])
-
+    
     # === Exporta Excel ===
     with pd.ExcelWriter("cnab240modelo_completo.xlsx", engine="openpyxl") as writer:
         df_header.to_excel(writer, sheet_name="Header", index=False)
-        df_segmento_p.to_excel(writer, sheet_name="Segmento P", index=False)
-
+        df_segmento_p[campos_segmento_p].to_excel(writer, sheet_name="Segmento P", index=False)
+        df_segmento_q.to_excel(writer, sheet_name="Segmento Q", index=False)
+        df_segmento_r.to_excel(writer, sheet_name="Segmento R", index=False)
+        df_segmento_s.to_excel(writer, sheet_name="Segmento S", index=False)
+        df_header_lote.to_excel(writer, sheet_name="Header Lote", index=False)
+        df_trailer_lote.to_excel(writer, sheet_name="Trailer Lote", index=False)
+        df_trailer_arquivo.to_excel(writer, sheet_name="Trailer Arquivo", index=False)
+        
+    # Botão para download
     with open("cnab240modelo_completo.xlsx", "rb") as f:
         st.download_button(
-            label="📥 Baixar Excel Final",
-            data=f,
-            file_name="cnab240modelo_completo.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        label="📥 Baixar Excel Final",
+        data=f,
+        file_name="cnab240modelo_completo.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            
+# Para rodar no terminal:
+# streamlit run app.py --logger.level debug
 
-
-#para rodar no terminal: streamlit run app.py --logger.level debug
-
+# Rodapé estilizado
 st.markdown("""
-<hr style="border:1px solid #ccc" />
+    <hr style="border:1px solid #ccc" />
 
-<div style='text-align: center; font-size: 14px; color: gray;'>
-    Desenvolvido por <strong> W.Teo </strong> · @ <a href='mailto:wteosouza@gmail.com'>wteosouza@gmail.com</a>
-</div>
+    <div style='text-align: center; font-size: 14px; color: gray;'>
+        Desenvolvido por <strong>W.Teo</strong> · 
+        <a href='mailto:wteosouza@gmail.com'>wteosouza@gmail.com</a>
+    </div>
 """, unsafe_allow_html=True)
+
+
+#atualizar GIThub:
+#git add .
+#git commit -m "Atualização de funcionalidades do app"
+#git push origin master
+
+##### https://conferidor-cnab240.streamlit.app/
