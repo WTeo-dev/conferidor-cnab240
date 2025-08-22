@@ -295,15 +295,37 @@ if uploaded_file:
     "01": "Entrada de título",
     "02": "Baixa",
     "04": "Abatimento",
+    "05": "Cancelar Abatimento",
     "06": "Alterar Vencimento",
+    "08": "Cancelamento de desconto",
     "09": "Protestar",
     "10": "Sustação de protesto",
-    "45": "Negativação"}
+    "12": "Alterar juros",
+    "13": "Dispensar juros",
+    "14": "Cobrar multa",
+    "15": "Dispensar multa",
+    "16": "Alterar dados do desconto",
+    "19": "Alterar prazo limite de recebimento",
+    "20": "Dispensar prazo limite de recebimento",
+    "21": "Alterar número do título",
+    "22": "Alterar número controle do participante",
+    "23": "Alterar nome e endereço do sacado",
+    "30": "Recusa da alegação do sacado",
+    "31": "Alteração de outros dados",
+    "34": "Alterar data do desconto",
+    "40": "Alterar modalidade",
+    "45": "Negativação sem protesto",
+    "46": "Exclusão de Negativação sem protesto",
+    "47": "Alterar valor nominal do título",}
     
     carteiras = {
-    "7": "Simples",
+    "1": "Simples Febraban",
     "2": "Vinculada",
+    "3": "Caucionada Febraban",
     "4": "Descontada",
+    "5": "Vendor",
+    "6": "Cessão de Crédito",
+    "7": "Simples",
     "8": "Prêmio de Seguro"}
     
     juros = {
@@ -313,18 +335,25 @@ if uploaded_file:
     "3": "Isento"}
     
     protesto = {
+    "0": "Sem informação, se vinculada assume 3 dias", 
     "1": "Protestar dias corridos",
     "2": "Protestar dias úteis",
-    "3": "Não protestar"}
+    "3": "Não protestar",
+    "4": "Protestar fim falimentar - dias úteis",
+    "5": "Protestar fim falimentar - dias corridos",
+    "7": "Não negativar",
+    "8": "Negativação sem protesto",
+    "9": "Cancelamento protesto Automático / rem 31"}
     
     multas = {        
-    "0": "Sem multa ou cadastro no banco",
+    "0": "Sem info/cadastro no banco",
     "1": "Multa Valor Fixo",
     "2": "Multa Percentual"}
     
     baixas = {
+    "0": "Sem info/cadastro no banco",
     "1": "Baixar",        
-    "2": "Não Baixar - Cadastrado BB",
+    "2": "Não Baixar",
     "3": "Cancelar Prazo de Baixa"}
         
     # Cria colunas explicativas no df_segmento_p
