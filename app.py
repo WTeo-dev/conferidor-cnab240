@@ -139,6 +139,39 @@ def extrair_segmento_q(linha):
         "Uso Exclusivo FEBRABAN": linha[233:240].strip()
     }
 
+def extrair_segmento_r(linha):
+    return {
+        "Código do Banco": linha[0:3],
+        "Lote de Serviço": linha[3:7],
+        "Tipo de Registro": linha[7:8],
+        "Nº Sequencial do Registro": linha[8:13],
+        "Código de Segmento": linha[13:14],
+        "Uso Exclusivo FEBRABAN": linha[14:15],
+        "Código de movimento de remessa": linha[15:17],#repetir codigo de movimento do segmento P
+        "Código de Desconto 2": linha[17:18],
+        "Data do Desconto 2": linha[18:26],
+        "Valor do Desconto 2": linha[26:41],
+        "Código de Desconto 3": linha[41:42],
+        "Data do Desconto 3": linha[42:50],
+        "Valor do Desconto 3": linha[50:65],    
+        "Código da multa": linha[65:66],#0 sem multa ou cadastro no banco 1-multa valor fixo 2-multa percentual
+        "Data da multa": linha[66:74],
+        "Valor da multa": linha[74:89],#sobrepoe a taxa cadastrada no banco
+        "Informação do sacado": linha[89:99].strip(),
+        "Mensagem 3": linha[99:139].strip(),
+        "Mensagem 4": linha[139:179].strip(),
+        "Uso Exclusivo FEBRABAN": linha[179:199].strip(),
+        "Cod Ocorrencia Sacado": linha[199:207],
+        "Código do banco na conta do débito": linha[207:210],
+        "Código da agência do debito": linha[210:215],
+        "Verificador da agência": linha[215:216],
+        "Conta corrente do débito": linha[216:228],
+        "Digito da conta corrente": linha[228:229],
+        "Digito verificador da agência/conta": linha[229:230],
+        "Aviso para débito automático": linha[230:231], 
+        "Uso Exclusivo FEBRABAN": linha[231:240].strip()
+    }
+    
 def extrair_trailer_lote(linha):
     return {
         "Código do Banco": linha[0:3],
@@ -193,6 +226,8 @@ with st.expander("📌 Lembretes para conferência"):
     - `1` → Protestar dias corridos  
     - `2` → Protestar dias úteis  
     - `3` → Não protestar  
+    
+    obs: Informações de Baixa, Juros e Multa: se deixados em branco o sistema assume os valores cadastrados no banco.
     """)
     
 # Upload do arquivo .REM ou .TXT
@@ -270,6 +305,7 @@ if uploaded_file:
     "8": "Prêmio de Seguro"}
     
     juros = {
+    "0": "Sem juros ou cadastro no banco",
     "1": "Valor por dia",
     "2": "Taxa mensal",
     "3": "Isento"}
@@ -278,6 +314,12 @@ if uploaded_file:
     "1": "Protestar dias corridos",
     "2": "Protestar dias úteis",
     "3": "Não protestar"}
+    
+    multas = {        
+    "0": "Sem multa ou cadastro no banco",
+    "1": "Multa Valor Fixo",
+    "2": "Multa Percentual"}
+    
     
     # Cria colunas explicativas no df_segmento_p
     df_segmento_p["Tipo de Movimento Explicado"] = df_segmento_p["Tipo de Movimento"].apply(
@@ -290,24 +332,41 @@ if uploaded_file:
     lambda x: f"{x} ({juros.get(str(x), 'Desconhecido')})")
     
     df_segmento_p["Código para Protesto Explicado"] = df_segmento_p["Código para Protesto"].apply(
-    lambda x: f"{x} ({protesto.get(str(x), 'Desconhecido')})")
-    
+    lambda x: f"{x} ({protesto.get(str(x), 'Desconhecido')})")    
+  
+    # Explicação para df_segmento_r — somente se a coluna existir
+    if not df_segmento_r.empty and "Código da multa" in df_segmento_r.columns:
+        df_segmento_r["Código da Multa Explicado"] = df_segmento_r["Código da multa"].apply(
+            lambda x: f"{x} ({multas.get(str(x), 'Desconhecido')})")
+    else:
+        print("Segmento R ausente ou sem a coluna 'Código da multa'.")
+      
     # === Destaques ===
     st.subheader("🔍 Header do Arquivo")
     campos_header = [
     "Número do Convênio", "Carteira", "Variação da Carteira",
     "Agência", "DV Agência", "Conta", "DV Conta"
     ]
-    
     st.dataframe(df_header[campos_header])
     
     st.subheader("📌 Segmento P - Títulos")
     campos_segmento_p = [
     "Nosso Numero", "Tipo de Movimento Explicado", "Código da Carteira Explicado",
     "Data de Vencimento", "Valor Nominal", "Código do Juros Explicado",
-    "Data do Juros", "Valor do Juros", "Código para Protesto Explicado", "Dias para Protesto"]
+    "Data do Juros", "Valor do Juros", "Código para Protesto Explicado", "Dias para Protesto", "Dias para Baixa"]
     st.dataframe(df_segmento_p[campos_segmento_p])
     
+    # ✅ Segmento R com verificação segura
+    colunas_r = ["Código da Multa Explicado", "Data da multa", "Valor da multa"]
+    
+    if not df_segmento_r.empty and all(col in df_segmento_r.columns for col in colunas_r):
+        st.subheader("📎 Segmento R - Multa por Atraso")
+        st.dataframe(df_segmento_r[colunas_r])
+    else:
+        st.info("ℹ️ Este arquivo não contém Segmento R ou os campos esperados de multa.")
+    
+                    
+                 
     # === Exporta Excel ===
     with pd.ExcelWriter("cnab240modelo_completo.xlsx", engine="openpyxl") as writer:
         df_header.to_excel(writer, sheet_name="Header", index=False)
