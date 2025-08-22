@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+from pathlib import Path
+from openpyxl import load_workbook
 
 # === Funções de extração ===
 #header ok
@@ -107,7 +109,7 @@ def extrair_segmento_p(linha):
         "Identificação do Título na Empresa": linha[195:220].strip(), #seu numero
         "Código para Protesto": linha[220:221],#1-protestar dias corridos 2-protestar dias uteis 3-nao protestar / vinculada assumne 3 dias se nao informar
         "Dias para Protesto": linha[221:223],
-        "Código para Baixa": linha[223:224],
+        "Código para Baixa": linha[223:224],#1-baixar, 2-não baixar 3-cancelar prazo baixa
         "Dias para Baixa": linha[224:227],#maximo 365. Se não informado pega o cadastrado no convenio
         "Código da Moeda": linha[227:229], #02-dolar 14-euro 00-real
         "Número do Contrato": linha[229:239],#não tratado pelo sistema
@@ -320,7 +322,11 @@ if uploaded_file:
     "1": "Multa Valor Fixo",
     "2": "Multa Percentual"}
     
-    
+    baixas = {
+    "1": "Baixar",        
+    "2": "Não Baixar - Cadastrado BB",
+    "3": "Cancelar Prazo de Baixa"}
+        
     # Cria colunas explicativas no df_segmento_p
     df_segmento_p["Tipo de Movimento Explicado"] = df_segmento_p["Tipo de Movimento"].apply(
     lambda x: f"{x} ({movimentos.get(str(x).zfill(2), 'Desconhecido')})")
@@ -333,6 +339,9 @@ if uploaded_file:
     
     df_segmento_p["Código para Protesto Explicado"] = df_segmento_p["Código para Protesto"].apply(
     lambda x: f"{x} ({protesto.get(str(x), 'Desconhecido')})")    
+    
+    df_segmento_p["Código para Baixa Explicado"] = df_segmento_p["Código para Baixa"].apply(
+    lambda x: f"{x} ({baixas.get(str(x), 'Desconhecido')})")  
   
     # Explicação para df_segmento_r — somente se a coluna existir
     if not df_segmento_r.empty and "Código da multa" in df_segmento_r.columns:
@@ -353,7 +362,7 @@ if uploaded_file:
     campos_segmento_p = [
     "Nosso Numero", "Tipo de Movimento Explicado", "Código da Carteira Explicado",
     "Data de Vencimento", "Valor Nominal", "Código do Juros Explicado",
-    "Data do Juros", "Valor do Juros", "Código para Protesto Explicado", "Dias para Protesto", "Dias para Baixa"]
+    "Data do Juros", "Valor do Juros", "Código para Protesto Explicado", "Dias para Protesto", "Código para Baixa Explicado", "Dias para Baixa"]
     st.dataframe(df_segmento_p[campos_segmento_p])
     
     # ✅ Segmento R com verificação segura
@@ -368,18 +377,36 @@ if uploaded_file:
                     
                  
     # === Exporta Excel ===
-    with pd.ExcelWriter("cnab240modelo_completo.xlsx", engine="openpyxl") as writer:
+    
+    caminho_excel = "cnab240modelo_completo.xlsx"
+           
+    with pd.ExcelWriter(caminho_excel, engine="openpyxl") as writer:
         df_header.to_excel(writer, sheet_name="Header", index=False)
-        df_segmento_p[campos_segmento_p].to_excel(writer, sheet_name="Segmento P", index=False)
+        df_segmento_p.to_excel(writer, sheet_name="Segmento P", index=False)
         df_segmento_q.to_excel(writer, sheet_name="Segmento Q", index=False)
         df_segmento_r.to_excel(writer, sheet_name="Segmento R", index=False)
         df_segmento_s.to_excel(writer, sheet_name="Segmento S", index=False)
         df_header_lote.to_excel(writer, sheet_name="Header Lote", index=False)
         df_trailer_lote.to_excel(writer, sheet_name="Trailer Lote", index=False)
         df_trailer_arquivo.to_excel(writer, sheet_name="Trailer Arquivo", index=False)
-        
+    
+    #reabrir
+    wb = load_workbook(caminho_excel)
+    
+    for sheet in wb.worksheets:
+        for column_cells in sheet.columns:
+            max_length = 0
+            column_letter = column_cells[0].column_letter
+        for cell in column_cells:
+            if cell.value:
+                max_length = max(max_length, len(str(cell.value)))
+        adjusted_width = (max_length + 2) * 1.2  # margem extra
+        sheet.column_dimensions[column_letter].width = adjusted_width
+    
+    wb.save(caminho_excel)
+         
     # Botão para download
-    with open("cnab240modelo_completo.xlsx", "rb") as f:
+    with open(caminho_excel, "rb") as f:
         st.download_button(
         label="📥 Baixar Excel Final",
         data=f,
