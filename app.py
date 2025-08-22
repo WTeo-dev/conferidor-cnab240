@@ -214,9 +214,9 @@ st.markdown(
         font-family: "Calibri", sans-serif;
         text-align: left;
         font-weight: normal;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     '>
-    🔍 Conferidor CNAB240: particularidades BB
+    🔍 Conferidor CNAB240 BB
     </h1>
     """,
     unsafe_allow_html=True
@@ -224,7 +224,7 @@ st.markdown(
 
 
 # Lembretes úteis
-with st.expander("📌 Lembretes para sua conferência (sua 'colinha')"):
+with st.expander("📌 Clique aqui para alguns lembretes:"):
     st.markdown("""
     **🔄 Tipo de Movimento**  
     - `01` → Entrada  
