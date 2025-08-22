@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 from openpyxl import load_workbook
+import base64
 
 # === Funções de extração ===
 #header ok
@@ -203,11 +204,27 @@ def extrair_trailer_arquivo(linha):
 st.set_page_config(page_title="Conferidor CNAB240", layout="wide")
 
 # Título principal
-st.title("📄 Conferidor CNAB240")
+#st.title("📄 Conferidor cnab240: particularidades bb")
+
+st.markdown(
+    """
+    <h1 style='
+        font-size: 36px;
+        color: white;
+        font-family: "Calibri", sans-serif;
+        text-align: left;
+        font-weight: normal;
+        margin-bottom: 20px;
+    '>
+    🔍 Conferidor CNAB240: particularidades BB
+    </h1>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # Lembretes úteis
-with st.expander("📌 Lembretes para conferência (Colinha)"):
+with st.expander("📌 Lembretes para sua conferência (sua 'colinha')"):
     st.markdown("""
     **🔄 Tipo de Movimento**  
     - `01` → Entrada  
@@ -246,7 +263,7 @@ with st.expander("📌 Lembretes para conferência (Colinha)"):
     """)
     
 # Upload do arquivo .REM ou .TXT
-uploaded_file = st.file_uploader("📤 Envie o arquivo CNAB240 (.REM ou .TXT)", type=["txt", "rem"])
+uploaded_file = st.file_uploader("📤 Faça o upload do arquivo de boletos padrão CNAB240 (.REM ou .TXT)", type=["txt", "rem"])
 
 if uploaded_file:
     linhas = uploaded_file.read().decode("utf-8").splitlines()
@@ -455,23 +472,51 @@ if uploaded_file:
         file_name="cnab240modelo_completo.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             
-# Para rodar no terminal:
-# streamlit run app.py --logger.level debug
+#background
+
+logo_url = "https://idgifts.com.br/wp-content/uploads/2022/04/banco-brasil.png"
+
+st.markdown(
+    f"""
+    <style>
+    .stApp {{
+        background-image: url("{logo_url}");
+        background-repeat: no-repeat;
+        background-position: bottom center;
+        background-size: 200px;
+        opacity: 1;
+    }}
+
+    .stApp::before {{
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("{logo_url}");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 150px;
+        opacity: 0.05;
+        z-index: -1;
+    }}
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 
 # Rodapé estilizado
 st.markdown("""
     <hr style="border:1px solid #ccc" />
 
     <div style='text-align: center; font-size: 14px; color: gray;'>
-        Desenvolvido por <strong>W.Teo</strong> · 
+        ©Desenvolvido por <strong>W.Teo</strong> · 
         <a href='mailto:wteosouza@gmail.com'>wteosouza@gmail.com</a>
     </div>
 """, unsafe_allow_html=True)
 
-
-#atualizar GIThub:
-#git add .
-#git commit -m "Atualização de funcionalidades do app"
-#git push origin master
-
+# Para rodar no terminal:
+# streamlit run app.py --logger.level debug
 ##### https://conferidor-cnab240.streamlit.app/
