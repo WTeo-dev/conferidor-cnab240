@@ -216,7 +216,7 @@ st.markdown(
         font-weight: normal;
         margin-bottom: 15px;
     '>
-    🔍 Conferidor CNAB240 BB
+    🔍 <strong>©Conferidor</strong> <span style='font-size: 22px;'>CNAB240 BB</span>
     </h1>
     """,
     unsafe_allow_html=True
@@ -257,7 +257,7 @@ with st.expander("📌 Clique aqui para alguns lembretes:"):
     - `0` → Sem info/cadastro no banco
     - `1` → Multa Valor Fixo
     - `2` → Multa Percentual
-    - '3' → Isento
+    - `3` → Isento
     
     obs: Informações de Baixa, Juros e Multa: se deixados em branco o sistema assume os valores cadastrados no banco.
     """)
