@@ -207,7 +207,7 @@ st.title("📄 Conferidor CNAB240")
 
 
 # Lembretes úteis
-with st.expander("📌 Lembretes para conferência"):
+with st.expander("📌 Lembretes para conferência (Colinha)"):
     st.markdown("""
     **🔄 Tipo de Movimento**  
     - `01` → Entrada  
@@ -220,14 +220,27 @@ with st.expander("📌 Lembretes para conferência"):
     - `8` → Prêmio de Seguro  
 
     **💰 Código de Juros**  
+    - `0` → Sem juros ou cadastro no banco
     - `1` → Valor por dia  
     - `2` → Taxa mensal  
-    - `3` → Isento (pegar dados cadastrados do banco)
+    - `3` → Isento
 
     **📣 Código de Protesto**  
     - `1` → Protestar dias corridos  
     - `2` → Protestar dias úteis  
     - `3` → Não protestar  
+    
+    **🛑 Código de baixa**
+    - `0` → Sem info/cadastro no banco
+    - `1` → Baixar
+    - `2` → Não baixar
+    - `3` → Cancelar prazo de baixa
+    
+    **⚠️ Código da Multa**
+    - `0` → Sem info/cadastro no banco
+    - `1` → Multa Valor Fixo
+    - `2` → Multa Percentual
+    - '3' → Isento
     
     obs: Informações de Baixa, Juros e Multa: se deixados em branco o sistema assume os valores cadastrados no banco.
     """)
